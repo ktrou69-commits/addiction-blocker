@@ -757,6 +757,58 @@
             background: linear-gradient(to bottom, #ffdddd, #ffaaaa);
         }
 
+        /* Стили для модального окна соглашения */
+        .agreement-content {
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .agreement-text {
+            text-align: left;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .agreement-text h4 {
+            color: #000080;
+            font-size: 1rem;
+            margin: 15px 0 8px 0;
+            padding: 5px;
+            background: linear-gradient(to bottom, #ffffff, #f0f0f0);
+            border: 1px solid #cccccc;
+        }
+
+        .agreement-text p {
+            margin-bottom: 10px;
+            color: #333333;
+        }
+
+        .agreement-text ul {
+            margin: 8px 0 15px 20px;
+            padding: 0;
+        }
+
+        .agreement-text li {
+            margin-bottom: 5px;
+            color: #333333;
+        }
+
+        .agreement-footer {
+            background: linear-gradient(to bottom, #ffffcc, #ffff99);
+            border: 2px inset #cccccc;
+            padding: 10px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .agreement-footer p {
+            margin: 0;
+            color: #000080;
+            font-size: 1rem;
+        }
+
         /* Адаптивность модального окна */
         @media (max-width: 480px) {
             .modal-content {
@@ -782,6 +834,24 @@
                 padding: 5px 15px;
                 font-size: 0.8rem;
                 margin: 0 3px;
+            }
+
+            .agreement-content {
+                max-width: 95%;
+                max-height: 85vh;
+            }
+
+            .agreement-text {
+                font-size: 0.85rem;
+            }
+
+            .agreement-text h4 {
+                font-size: 0.9rem;
+                padding: 4px;
+            }
+
+            .agreement-footer p {
+                font-size: 0.9rem;
             }
         }
 
@@ -809,6 +879,24 @@
                 font-size: 0.75rem;
                 margin: 0 2px;
             }
+
+            .agreement-content {
+                max-width: 98%;
+                max-height: 90vh;
+            }
+
+            .agreement-text {
+                font-size: 0.8rem;
+            }
+
+            .agreement-text h4 {
+                font-size: 0.85rem;
+                padding: 3px;
+            }
+
+            .agreement-footer p {
+                font-size: 0.85rem;
+            }
         }
     </style>
 </head>
@@ -817,7 +905,7 @@
         <div class="header">
             <h1 class="title">Контроль Зависимостей</h1>
             <p class="subtitle">Путь к свободе и развитию</p>
-            <div class="day-counter">Проект 69</div>
+            <div class="day-counter" onclick="openAgreementModal()">Проект 69</div>
         </div>
 
         <div class="sections">
@@ -930,6 +1018,52 @@
             <div class="modal-buttons">
                 <button class="modal-btn cancel-btn" onclick="closeEditModal()">Отмена</button>
                 <button class="modal-btn save-btn" onclick="saveMotivation()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно соглашения -->
+    <div class="modal" id="agreementModal">
+        <div class="modal-content agreement-content">
+            <h3 class="modal-title">📋 Соглашение проекта 69</h3>
+            <div class="agreement-text">
+                <h4>🎯 Цель проекта:</h4>
+                <p>Полное освобождение от цифровых зависимостей и переход к осознанной, продуктивной жизни, направленной на постоянное развитие и рост.</p>
+                
+                <h4>⛔️ Я обязуюсь НЕ использовать:</h4>
+                <ul>
+                    <li>📱 TikTok и подобные платформы</li>
+                    <li>🎬 Развлекательные видео в социальных сетях</li>
+                    <li>🔞 Порнографический контент</li>
+                    <li>🎭 Фильмы и сериалы (кроме образовательных)</li>
+                    <li>🎮 Компьютерные и мобильные игры</li>
+                </ul>
+
+                <h4>✅ Я обязуюсь ФОКУСИРОВАТЬСЯ на:</h4>
+                <ul>
+                    <li>📚 Чтении развивающей литературы</li>
+                    <li>🎧 Образовательных подкастах</li>
+                    <li>🇬🇧 Изучении английского языка</li>
+                    <li>📝 Выполнении домашних и школьных заданий</li>
+                    <li>💪 Личностном и профессиональном развитии</li>
+                    <li>💧 Поддержании здорового образа жизни (1.5л воды в день)</li>
+                </ul>
+
+                <h4>🏆 Правила успеха:</h4>
+                <ul>
+                    <li>🪙 Активировать монетку успеха только при полном соблюдении правил</li>
+                    <li>📱 Использовать это приложение как ежедневное напоминание</li>
+                    <li>🚀 Стремиться к экспоненциальному росту каждый день</li>
+                    <li>💪 Не оглядываться назад, только вперед к целям</li>
+                </ul>
+
+                <div class="agreement-footer">
+                    <p><strong>Я понимаю, что это мой путь к свободе от зависимостей и готов следовать этим принципам.</strong></p>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel-btn" onclick="closeAgreementModal()">Отмена</button>
+                <button class="modal-btn save-btn" onclick="agreeToTerms()">✅ Согласиться</button>
             </div>
         </div>
     </div>
@@ -1140,6 +1274,39 @@
                 document.getElementById('successCoin').classList.add('activated');
             }
         }
+
+        // Функции для модального окна соглашения
+        function openAgreementModal() {
+            document.getElementById('agreementModal').style.display = 'block';
+        }
+
+        function closeAgreementModal() {
+            document.getElementById('agreementModal').style.display = 'none';
+        }
+
+        function agreeToTerms() {
+            // Сохраняем согласие пользователя
+            const today = new Date().toDateString();
+            localStorage.setItem('agreement_' + today, 'true');
+            
+            closeAgreementModal();
+            showNotification('Соглашение принято! Удачи в проекте 69! 🚀');
+        }
+
+        // Закрытие модального окна соглашения по клику вне его
+        document.addEventListener('click', function(e) {
+            const agreementModal = document.getElementById('agreementModal');
+            if (e.target === agreementModal) {
+                closeAgreementModal();
+            }
+        });
+
+        // Закрытие по Escape для модального окна соглашения
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAgreementModal();
+            }
+        });
     </script>
 </body>
 </html>
