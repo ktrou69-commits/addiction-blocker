@@ -1010,6 +1010,9 @@
             <button class="edit-btn" onclick="sendTestReport()" style="margin-top: 10px;">
                 📧 Отправить тестовый отчет
             </button>
+            <button class="edit-btn" onclick="checkSystemStatus()" style="margin-top: 5px; background: linear-gradient(to bottom, #66cc66, #339933);">
+                🔍 Проверить настройки
+            </button>
         </div>
     </div>
 
@@ -1074,7 +1077,19 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
         // Инициализация EmailJS
-        emailjs.init('YOUR_PUBLIC_KEY'); // Замените на ваш публичный ключ
+        const EMAIL_CONFIG = {
+            publicKey: 'N9AsAvxymEgBPyyfI',    // Из Account → General
+            serviceId: 'service_761dbcn',              // ✅ Готово!
+            templateId: 'template_fy6ylgf'   // Из Email Templates
+        };
+        
+        // Проверяем настройку EmailJS
+        if (EMAIL_CONFIG.publicKey === 'ВСТАВЬТЕ_СЮДА_PUBLIC_KEY') {
+            console.warn('⚠️ EmailJS не настроен! Замените ключи в EMAIL_CONFIG');
+        } else {
+            emailjs.init(EMAIL_CONFIG.publicKey);
+            console.log('✅ EmailJS инициализирован');
+        }
 
         // Загрузка сохраненного текста при загрузке страницы
         window.addEventListener('DOMContentLoaded', function() {
@@ -1351,6 +1366,14 @@
         }
 
         function sendDailyReport(hour) {
+            // Проверяем настройку EmailJS
+            if (EMAIL_CONFIG.publicKey === 'ВСТАВЬТЕ_СЮДА_PUBLIC_KEY') {
+                showNotification('❌ EmailJS не настроен! Нажмите "Проверить настройки"');
+                console.error('EmailJS не настроен. Замените ключи в EMAIL_CONFIG');
+                return;
+            }
+
+            console.log(`📧 Генерируем отчет за ${hour}:00...`);
             const reportData = generateReportData();
             const emailContent = generateEmailHTML(reportData, hour);
             
@@ -1362,13 +1385,16 @@
                 from_name: 'Проект 69 - Система отчетов'
             };
 
+            console.log('📤 Отправляем отчет через EmailJS...');
+
             // Отправка через EmailJS
-            emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
+            emailjs.send(EMAIL_CONFIG.serviceId, EMAIL_CONFIG.templateId, templateParams)
                 .then(function(response) {
-                    console.log('Отчет отправлен успешно!', response.status, response.text);
+                    console.log('✅ Отчет отправлен успешно!', response.status, response.text);
                     showNotification(`📧 Отчет ${hour}:00 отправлен на почту!`);
                 }, function(error) {
-                    console.log('Ошибка отправки отчета:', error);
+                    console.error('❌ Ошибка отправки отчета:', error);
+                    showNotification(`❌ Ошибка отправки: ${error.text || error.message || 'Неизвестная ошибка'}`);
                 });
         }
 
@@ -1498,7 +1524,42 @@
 
         // Функция для ручной отправки тестового отчета
         function sendTestReport() {
+            console.log('🧪 Запуск тестовой отправки отчета...');
+            
+            // Проверяем настройку
+            if (EMAIL_CONFIG.publicKey === 'ВСТАВЬТЕ_СЮДА_PUBLIC_KEY') {
+                alert('❌ EmailJS не настроен!\n\nДля настройки:\n1. Откройте EMAIL_SETUP.md\n2. Зарегистрируйтесь на emailjs.com\n3. Получите ключи API\n4. Замените их в коде');
+                return;
+            }
+            
+            // Проверяем загрузку EmailJS
+            if (typeof emailjs === 'undefined') {
+                showNotification('❌ EmailJS библиотека не загружена');
+                console.error('EmailJS библиотека не найдена');
+                return;
+            }
+            
+            showNotification('📧 Отправляем тестовый отчет...');
             sendDailyReport(new Date().getHours());
+        }
+
+        // Функция для проверки статуса системы
+        function checkSystemStatus() {
+            console.log('🔍 Проверка статуса системы...');
+            console.log('📧 EmailJS загружен:', typeof emailjs !== 'undefined');
+            console.log('🔑 Ключи настроены:', EMAIL_CONFIG.publicKey !== 'ВСТАВЬТЕ_СЮДА_PUBLIC_KEY');
+            console.log('⏰ Текущее время (Берлин):', new Date().toLocaleString("ru-RU", {timeZone: "Europe/Berlin"}));
+            console.log('💾 Данные в localStorage:', {
+                water: localStorage.getItem('waterProgress_' + new Date().toDateString()),
+                coin: localStorage.getItem('successCoin_' + new Date().toDateString()),
+                motivation: localStorage.getItem('motivationText')
+            });
+            
+            // Показываем результат пользователю
+            const status = typeof emailjs !== 'undefined' ? '✅' : '❌';
+            const keys = EMAIL_CONFIG.publicKey !== 'ВСТАВЬТЕ_СЮДА_PUBLIC_KEY' ? '✅' : '❌';
+            
+            showNotification(`Статус системы:\n${status} EmailJS загружен\n${keys} Ключи настроены\n\nПодробности в консоли (F12)`);
         }
     </script>
 </body>
