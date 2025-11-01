@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Контроль Зависимостей - Проект 69</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0066cc url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><rect width="20" height="20" fill="%23004499"/><rect x="0" y="0" width="10" height="10" fill="%230066cc"/><rect x="10" y="10" width="10" height="10" fill="%230066cc"/></svg>');
+            min-height: 100vh;
+            padding: 10px;
+            color: #000;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #f0f0f0;
+            border: 3px outset #cccccc;
+            padding: 20px;
+            box-shadow: 4px 4px 8px #666666;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(to bottom, #ffffff, #e0e0e0);
+            border: 2px inset #cccccc;
+            padding: 15px;
+        }
+
+        .title {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #000080;
+            margin-bottom: 8px;
+            text-shadow: 1px 1px 0px #ffffff;
+            font-family: "Times New Roman", serif;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: #666666;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .day-counter {
+            display: inline-block;
+            background: linear-gradient(to bottom, #ff6600, #cc3300);
+            color: white;
+            padding: 8px 20px;
+            border: 2px outset #ff6600;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-shadow: 1px 1px 1px #000000;
+            cursor: pointer;
+        }
+
+        .day-counter:hover {
+            background: linear-gradient(to bottom, #ff7700, #dd4400);
+        }
+
+        .sections {
+            display: table;
+            width: 100%;
+            margin-bottom: 30px;
+            border-spacing: 15px;
+        }
+
+        .section {
+            display: table-cell;
+            width: 50%;
+            background: #ffffff;
+            border: 3px inset #cccccc;
+            padding: 20px;
+            vertical-align: top;
+        }
+
+        .blocked {
+            background: linear-gradient(to bottom, #ffeeee, #ffcccc);
+        }
+
+        .allowed {
+            background: linear-gradient(to bottom, #eeffee, #ccffcc);
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding: 8px;
+            text-align: center;
+            border: 2px inset #cccccc;
+            background: linear-gradient(to bottom, #ffffff, #f0f0f0);
+        }
+
+        .blocked .section-title {
+            color: #cc0000;
+            background: linear-gradient(to bottom, #ffdddd, #ffaaaa);
+        }
+
+        .allowed .section-title {
+            color: #006600;
+            background: linear-gradient(to bottom, #ddffdd, #aaffaa);
+        }
+
+        .icon {
+            font-size: 1.8rem;
+            margin-right: 8px;
+        }
+
+        .items {
+            list-style: none;
+        }
+
+        .item {
+            padding: 8px;
+            border-bottom: 1px dotted #999999;
+            font-size: 1rem;
+            font-weight: normal;
+            background: #fafafa;
+            margin-bottom: 2px;
+            border: 1px solid #dddddd;
+        }
+
+        .item:last-child {
+            border-bottom: 1px dotted #999999;
+        }
+
+        .item:hover {
+            background: #ffffcc;
+            border-color: #ffcc00;
+        }
+
+        .blocked .item {
+            color: #990000;
+            background: #fff5f5;
+        }
+
+        .blocked .item:hover {
+            background: #ffe0e0;
+        }
+
+        .allowed .item {
+            color: #006600;
+            background: #f5fff5;
+        }
+
+        .allowed .item:hover {
+            background: #e0ffe0;
+        }
+
+        .item-icon {
+            font-size: 1.2rem;
+            margin-right: 8px;
+        }
+
+        .motivation {
+            background: linear-gradient(to bottom, #3366cc, #003399);
+            color: white;
+            padding: 20px;
+            border: 3px outset #3366cc;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .motivation-text {
+            font-size: 1.1rem;
+            font-weight: bold;
+            line-height: 1.4;
+            text-shadow: 1px 1px 1px #000000;
+        }
+
+        .edit-btn {
+            background: linear-gradient(to bottom, #ffcc00, #ff9900);
+            border: 2px outset #ffcc00;
+            color: #000000;
+            padding: 6px 15px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .edit-btn:hover {
+            background: linear-gradient(to bottom, #ffdd00, #ffaa00);
+        }
+
+        .edit-btn:active {
+            border: 2px inset #ffcc00;
+        }
+
+        .footer {
+            text-align: center;
+            color: #666666;
+            font-size: 0.8rem;
+            margin-top: 15px;
+            font-style: italic;
+        }
+
+        /* Планшеты */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 5px;
+            }
+
+            .title {
+                font-size: 1.8rem;
+            }
+
+            .sections {
+                display: block;
+            }
+
+            .section {
+                display: block;
+                width: 100%;
+                margin-bottom: 15px;
+            }
+
+            .section-title {
+                font-size: 1.2rem;
+                padding: 6px;
+            }
+
+            .day-counter {
+                padding: 8px 20px;
+                font-size: 1.2rem;
+            }
+
+            .item {
+                padding: 10px;
+                font-size: 1rem;
+            }
+        }
+
+        /* Мобильные устройства */
+        @media (max-width: 480px) {
+            body {
+                padding: 3px;
+                font-size: 14px;
+            }
+
+            .container {
+                padding: 8px;
+                margin: 2px;
+                border-width: 2px;
+            }
+
+            .header {
+                padding: 10px;
+                margin-bottom: 15px;
+            }
+
+            .title {
+                font-size: 1.4rem;
+                margin-bottom: 5px;
+            }
+
+            .subtitle {
+                font-size: 0.85rem;
+                margin-bottom: 10px;
+            }
+
+            .day-counter {
+                padding: 6px 15px;
+                font-size: 1rem;
+            }
+
+            .section {
+                padding: 12px;
+                margin-bottom: 10px;
+                border-width: 2px;
+            }
+
+            .section-title {
+                font-size: 1rem;
+                padding: 6px;
+                margin-bottom: 10px;
+            }
+
+            .icon {
+                font-size: 1.4rem;
+                margin-right: 6px;
+            }
+
+            .item {
+                font-size: 0.85rem;
+                padding: 8px;
+                margin-bottom: 1px;
+                border-width: 1px;
+            }
+
+            .item-icon {
+                font-size: 1rem;
+                margin-right: 6px;
+            }
+
+            .motivation {
+                padding: 12px;
+                border-width: 2px;
+                margin-bottom: 10px;
+            }
+
+            .motivation-text {
+                font-size: 0.9rem;
+                line-height: 1.3;
+            }
+
+            .edit-btn {
+                padding: 5px 12px;
+                font-size: 0.8rem;
+                margin-top: 8px;
+            }
+
+            .footer {
+                font-size: 0.7rem;
+                margin-top: 10px;
+            }
+        }
+
+        /* Очень маленькие экраны */
+        @media (max-width: 320px) {
+            body {
+                padding: 2px;
+                font-size: 13px;
+            }
+
+            .container {
+                padding: 6px;
+                margin: 1px;
+            }
+
+            .header {
+                padding: 8px;
+                margin-bottom: 12px;
+            }
+
+            .title {
+                font-size: 1.2rem;
+                margin-bottom: 4px;
+            }
+
+            .subtitle {
+                font-size: 0.8rem;
+                margin-bottom: 8px;
+            }
+
+            .day-counter {
+                padding: 5px 12px;
+                font-size: 0.9rem;
+            }
+
+            .section {
+                padding: 10px;
+                margin-bottom: 8px;
+            }
+
+            .section-title {
+                font-size: 0.9rem;
+                padding: 5px;
+                margin-bottom: 8px;
+            }
+
+            .icon {
+                font-size: 1.2rem;
+                margin-right: 5px;
+            }
+
+            .item {
+                font-size: 0.8rem;
+                padding: 6px;
+                margin-bottom: 1px;
+            }
+
+            .item-icon {
+                font-size: 0.9rem;
+                margin-right: 5px;
+            }
+
+            .motivation {
+                padding: 10px;
+                margin-bottom: 8px;
+            }
+
+            .motivation-text {
+                font-size: 0.85rem;
+                line-height: 1.2;
+            }
+
+            .edit-btn {
+                padding: 4px 10px;
+                font-size: 0.75rem;
+                margin-top: 6px;
+            }
+
+            .footer {
+                font-size: 0.65rem;
+                margin-top: 8px;
+            }
+        }
+
+        /* Модальное окно для редактирования */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #f0f0f0;
+            padding: 20px;
+            border: 3px outset #cccccc;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 4px 4px 8px #666666;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #000080;
+            text-align: center;
+            background: linear-gradient(to bottom, #ffffff, #e0e0e0);
+            border: 2px inset #cccccc;
+            padding: 8px;
+        }
+
+        .modal textarea {
+            width: 100%;
+            height: 100px;
+            padding: 8px;
+            border: 2px inset #cccccc;
+            font-size: 0.9rem;
+            font-family: Arial, Helvetica, sans-serif;
+            resize: vertical;
+            margin-bottom: 15px;
+            background: #ffffff;
+        }
+
+        .modal textarea:focus {
+            outline: none;
+            border: 2px inset #0066cc;
+        }
+
+        .modal-buttons {
+            text-align: center;
+        }
+
+        .modal-btn {
+            padding: 6px 20px;
+            border: 2px outset #cccccc;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0 5px;
+            background: linear-gradient(to bottom, #ffffff, #e0e0e0);
+        }
+
+        .modal-btn:hover {
+            background: linear-gradient(to bottom, #f0f0f0, #d0d0d0);
+        }
+
+        .modal-btn:active {
+            border: 2px inset #cccccc;
+        }
+
+        .save-btn {
+            background: linear-gradient(to bottom, #66cc66, #339933);
+            color: white;
+            border: 2px outset #66cc66;
+        }
+
+        .save-btn:hover {
+            background: linear-gradient(to bottom, #77dd77, #44aa44);
+        }
+
+        .cancel-btn {
+            background: linear-gradient(to bottom, #ffcccc, #ff9999);
+            color: #000000;
+            border: 2px outset #ffcccc;
+        }
+
+        .cancel-btn:hover {
+            background: linear-gradient(to bottom, #ffdddd, #ffaaaa);
+        }
+
+        /* Адаптивность модального окна */
+        @media (max-width: 480px) {
+            .modal-content {
+                width: 95%;
+                padding: 15px;
+                border-width: 2px;
+            }
+
+            .modal-title {
+                font-size: 1.1rem;
+                padding: 6px;
+                margin-bottom: 12px;
+            }
+
+            .modal textarea {
+                height: 80px;
+                padding: 6px;
+                font-size: 0.85rem;
+                margin-bottom: 12px;
+            }
+
+            .modal-btn {
+                padding: 5px 15px;
+                font-size: 0.8rem;
+                margin: 0 3px;
+            }
+        }
+
+        @media (max-width: 320px) {
+            .modal-content {
+                width: 98%;
+                padding: 12px;
+            }
+
+            .modal-title {
+                font-size: 1rem;
+                padding: 5px;
+                margin-bottom: 10px;
+            }
+
+            .modal textarea {
+                height: 70px;
+                padding: 5px;
+                font-size: 0.8rem;
+                margin-bottom: 10px;
+            }
+
+            .modal-btn {
+                padding: 4px 12px;
+                font-size: 0.75rem;
+                margin: 0 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Контроль Зависимостей</h1>
+            <p class="subtitle">Путь к свободе и развитию</p>
+            <div class="day-counter">Проект 69</div>
+        </div>
+
+        <div class="sections">
+            <div class="section blocked">
+                <div class="section-title">
+                    <span class="icon">⛔️</span>
+                    ЗАБЛОКИРОВАНО
+                </div>
+                <ul class="items">
+                    <li class="item">
+                        <span class="item-icon">📱</span>
+                        TikTok
+                    </li>
+                    <li class="item">
+                        <span class="item-icon">🎬</span>
+                        Развлекательные видео в соц сетях
+                    </li>
+                    <li class="item">
+                        <span class="item-icon">🔞</span>
+                        Порно
+                    </li>
+                    <li class="item">
+                        <span class="item-icon">🎭</span>
+                        Фильмы и сериалы
+                    </li>
+                    <li class="item">
+                        <span class="item-icon">🎮</span>
+                        Игры
+                    </li>
+                </ul>
+            </div>
+
+            <div class="section allowed">
+                <div class="section-title">
+                    <span class="icon">✅</span>
+                    РАЗРЕШЕНО
+                </div>
+                <ul class="items">
+                    <li class="item">
+                        <span class="item-icon">📚</span>
+                        Чтение
+                    </li>
+                    <li class="item">
+                        <span class="item-icon">🎧</span>
+                        Подкасты
+                    </li>
+                    <li class="item">
+                        <span class="item-icon">🇬🇧</span>
+                        Изучение английского
+                    </li>
+                    <li class="item">
+                        <span class="item-icon">📝</span>
+                        Домашние школьные задания
+                    </li>
+                    <li class="item">
+                        <span class="item-icon">💪</span>
+                        Развитие
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="motivation">
+            <div class="motivation-text" id="motivationText">
+                69. просто действуй, делай и не оглядывайся, измени свою картину восприятия, и оставь только развитие, экспоненциальный рост!! 🚀
+            </div>
+            <button class="edit-btn" onclick="openEditModal()">
+                ✏️ Редактировать мотивацию
+            </button>
+        </div>
+
+        <div class="footer">
+            <p>💪 Каждый день - шаг к лучшей версии себя</p>
+        </div>
+    </div>
+
+    <!-- Модальное окно для редактирования -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <h3 class="modal-title">Редактировать мотивационный текст</h3>
+            <textarea id="editTextarea" placeholder="Введите ваш мотивационный текст..."></textarea>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel-btn" onclick="closeEditModal()">Отмена</button>
+                <button class="modal-btn save-btn" onclick="saveMotivation()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Загрузка сохраненного текста при загрузке страницы
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedText = localStorage.getItem('motivationText');
+            if (savedText) {
+                document.getElementById('motivationText').innerHTML = savedText;
+            }
+        });
+
+        function openEditModal() {
+            const modal = document.getElementById('editModal');
+            const textarea = document.getElementById('editTextarea');
+            const currentText = document.getElementById('motivationText').innerHTML;
+            
+            textarea.value = currentText;
+            modal.style.display = 'block';
+            textarea.focus();
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        function saveMotivation() {
+            const newText = document.getElementById('editTextarea').value;
+            if (newText.trim()) {
+                document.getElementById('motivationText').innerHTML = newText;
+                localStorage.setItem('motivationText', newText);
+                closeEditModal();
+                
+                // Показать уведомление о сохранении
+                showNotification('Мотивационный текст сохранен! 💾');
+            }
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #48bb78;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                font-weight: 600;
+                z-index: 2000;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+                box-shadow: 0 10px 25px rgba(72, 187, 120, 0.3);
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Анимация появления
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+
+            // Удаление через 3 секунды
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Закрытие модального окна по клику вне его
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+
+        // Закрытие по Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeEditModal();
+            }
+        });
+
+        // Сохранение по Ctrl+Enter
+        document.getElementById('editTextarea').addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                saveMotivation();
+            }
+        });
+
+        // Эффект мигания для счетчика дня (стиль 2000-х)
+        setInterval(() => {
+            const dayCounter = document.querySelector('.day-counter');
+            dayCounter.style.background = 'linear-gradient(to bottom, #ffaa00, #ff6600)';
+            setTimeout(() => {
+                dayCounter.style.background = 'linear-gradient(to bottom, #ff6600, #cc3300)';
+            }, 300);
+        }, 4000);
+
+        // Простые эффекты наведения в стиле 2000-х
+        document.querySelectorAll('.item').forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.fontWeight = 'bold';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.style.fontWeight = 'normal';
+            });
+        });
+
+        // Эффект нажатия для кнопок
+        document.querySelectorAll('.edit-btn, .day-counter').forEach(btn => {
+            btn.addEventListener('mousedown', function() {
+                this.style.border = '2px inset ' + (this.classList.contains('day-counter') ? '#ff6600' : '#ffcc00');
+            });
+            
+            btn.addEventListener('mouseup', function() {
+                this.style.border = '2px outset ' + (this.classList.contains('day-counter') ? '#ff6600' : '#ffcc00');
+            });
+        });
+    </script>
+</body>
+</html>
