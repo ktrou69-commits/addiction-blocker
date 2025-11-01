@@ -1007,6 +1007,9 @@
 
         <div class="footer">
             <p>💪 Каждый день - шаг к лучшей версии себя</p>
+            <button class="edit-btn" onclick="sendTestReport()" style="margin-top: 10px;">
+                📧 Отправить тестовый отчет
+            </button>
         </div>
     </div>
 
@@ -1068,7 +1071,11 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
+        // Инициализация EmailJS
+        emailjs.init('YOUR_PUBLIC_KEY'); // Замените на ваш публичный ключ
+
         // Загрузка сохраненного текста при загрузке страницы
         window.addEventListener('DOMContentLoaded', function() {
             const savedText = localStorage.getItem('motivationText');
@@ -1079,6 +1086,9 @@
             // Загрузка состояния воды и монетки
             loadWaterProgress();
             loadSuccessCoin();
+            
+            // Запуск системы автоматических отчетов
+            initEmailReports();
         });
 
         function openEditModal() {
@@ -1307,6 +1317,189 @@
                 closeAgreementModal();
             }
         });
+
+        // Система автоматических email отчетов
+        function initEmailReports() {
+            // Проверяем отчеты каждую минуту
+            setInterval(checkEmailSchedule, 60000);
+            
+            // Проверяем сразу при загрузке
+            checkEmailSchedule();
+        }
+
+        function checkEmailSchedule() {
+            const now = new Date();
+            
+            // Получаем время в берлинской временной зоне
+            const berlinTime = new Date(now.toLocaleString("en-US", {timeZone: "Europe/Berlin"}));
+            const hours = berlinTime.getHours();
+            const minutes = berlinTime.getMinutes();
+            
+            // Время отправки: 12:00, 16:00, 20:00 (±2 минуты для надежности)
+            const reportTimes = [12, 16, 20];
+            
+            if (reportTimes.includes(hours) && minutes <= 2) {
+                const today = berlinTime.toDateString();
+                const lastReportKey = `lastReport_${hours}_${today}`;
+                
+                // Проверяем, не отправляли ли уже отчет в это время сегодня
+                if (!localStorage.getItem(lastReportKey)) {
+                    sendDailyReport(hours);
+                    localStorage.setItem(lastReportKey, 'sent');
+                }
+            }
+        }
+
+        function sendDailyReport(hour) {
+            const reportData = generateReportData();
+            const emailContent = generateEmailHTML(reportData, hour);
+            
+            // Параметры для EmailJS
+            const templateParams = {
+                to_email: 'ktrou69@gmail.com',
+                subject: `📊 Проект 69 - Отчет ${hour}:00 (${new Date().toLocaleDateString('ru-RU')})`,
+                html_content: emailContent,
+                from_name: 'Проект 69 - Система отчетов'
+            };
+
+            // Отправка через EmailJS
+            emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
+                .then(function(response) {
+                    console.log('Отчет отправлен успешно!', response.status, response.text);
+                    showNotification(`📧 Отчет ${hour}:00 отправлен на почту!`);
+                }, function(error) {
+                    console.log('Ошибка отправки отчета:', error);
+                });
+        }
+
+        function generateReportData() {
+            const today = new Date().toDateString();
+            
+            // Получаем данные за сегодня
+            const waterProgress = parseInt(localStorage.getItem('waterProgress_' + today) || '0');
+            const successCoin = localStorage.getItem('successCoin_' + today) === 'true';
+            const agreement = localStorage.getItem('agreement_' + today) === 'true';
+            const motivation = localStorage.getItem('motivationText') || 'Не установлена';
+            
+            return {
+                date: new Date().toLocaleDateString('ru-RU', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                }),
+                time: new Date().toLocaleTimeString('ru-RU', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    timeZone: 'Europe/Berlin'
+                }),
+                waterProgress: waterProgress,
+                waterPercent: Math.round((waterProgress / 6) * 100),
+                successCoin: successCoin,
+                agreement: agreement,
+                motivation: motivation
+            };
+        }
+
+        function generateEmailHTML(data, hour) {
+            const waterEmoji = '💧'.repeat(data.waterProgress) + '⚪'.repeat(6 - data.waterProgress);
+            const coinStatus = data.successCoin ? '🟢 Активирована' : '⚪ Не активирована';
+            const agreementStatus = data.agreement ? '✅ Принято' : '❌ Не принято';
+            
+            return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f0f0; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border: 3px outset #cccccc; }
+        .header { background: linear-gradient(to bottom, #0066cc, #004499); color: white; padding: 20px; text-align: center; }
+        .content { padding: 20px; }
+        .section { margin-bottom: 20px; padding: 15px; border: 2px inset #cccccc; }
+        .blocked { background: linear-gradient(to bottom, #ffeeee, #ffcccc); }
+        .allowed { background: linear-gradient(to bottom, #eeffee, #ccffcc); }
+        .water { background: linear-gradient(to bottom, #e6f3ff, #b3d9ff); }
+        .success { background: linear-gradient(to bottom, #ffffcc, #ffff99); }
+        h2 { color: #000080; margin: 0 0 10px 0; }
+        h3 { color: #000080; margin: 0 0 8px 0; font-size: 1.1rem; }
+        .status-good { color: #006600; font-weight: bold; }
+        .status-warning { color: #cc6600; font-weight: bold; }
+        .status-bad { color: #cc0000; font-weight: bold; }
+        .footer { text-align: center; padding: 15px; background: #f0f0f0; font-size: 0.9rem; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Проект 69 - Отчет ${hour}:00</h1>
+            <p>${data.date} в ${data.time} (Берлин)</p>
+        </div>
+        
+        <div class="content">
+            <div class="section water">
+                <h3>💧 Питье воды</h3>
+                <p><strong>Прогресс:</strong> ${data.waterProgress}/6 стаканов (${data.waterPercent}%)</p>
+                <p><strong>Визуализация:</strong> ${waterEmoji}</p>
+                <p class="${data.waterProgress >= 6 ? 'status-good' : data.waterProgress >= 3 ? 'status-warning' : 'status-bad'}">
+                    ${data.waterProgress >= 6 ? '✅ Норма выполнена!' : data.waterProgress >= 3 ? '⚠️ Половина выполнена' : '❌ Нужно больше пить'}
+                </p>
+            </div>
+
+            <div class="section success">
+                <h3>🪙 Монетка успеха</h3>
+                <p><strong>Статус:</strong> ${coinStatus}</p>
+                <p class="${data.successCoin ? 'status-good' : 'status-warning'}">
+                    ${data.successCoin ? '🎉 День прошел без нарушений!' : '⏳ День еще не завершен'}
+                </p>
+            </div>
+
+            <div class="section blocked">
+                <h3>⛔️ Заблокированные активности</h3>
+                <ul>
+                    <li>📱 TikTok</li>
+                    <li>🎬 Развлекательные видео в соц сетях</li>
+                    <li>🔞 Порно</li>
+                    <li>🎭 Фильмы и сериалы</li>
+                    <li>🎮 Игры</li>
+                </ul>
+            </div>
+
+            <div class="section allowed">
+                <h3>✅ Разрешенные активности</h3>
+                <ul>
+                    <li>📚 Чтение</li>
+                    <li>🎧 Подкасты</li>
+                    <li>🇬🇧 Изучение английского</li>
+                    <li>📝 Домашние школьные задания</li>
+                    <li>💪 Развитие</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>💭 Текущая мотивация</h3>
+                <p><em>"${data.motivation}"</em></p>
+            </div>
+
+            <div class="section">
+                <h3>📋 Соглашение проекта</h3>
+                <p><strong>Статус:</strong> ${agreementStatus}</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🚀 Проект 69 - Путь к свободе от зависимостей</p>
+            <p>Автоматический отчет сгенерирован в ${data.time}</p>
+        </div>
+    </div>
+</body>
+</html>`;
+        }
+
+        // Функция для ручной отправки тестового отчета
+        function sendTestReport() {
+            sendDailyReport(new Date().getHours());
+        }
     </script>
 </body>
 </html>
