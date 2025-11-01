@@ -1377,13 +1377,12 @@
             const reportData = generateReportData();
             const reportText = generateReportText(reportData);
             
-            // Параметры для EmailJS (HTML напоминалка)
-            const htmlContent = generateRetroHTML(reportData, reportText, hour);
+            // Параметры для EmailJS (используем переменные шаблона)
             const templateParams = {
-                subject: `💪 Проект 69 - Напоминание ${hour}:00 (${new Date().toLocaleDateString('ru-RU')})`,
-                html_content: htmlContent,
-                to_email: 'ktrou69@gmail.com',
-                from_name: 'Проект 69 - Система напоминаний'
+                project_name: `💪 Проект 69 - Напоминание ${hour}:00`,
+                report_time: `${reportData.date} в ${reportData.time} (Берлин)`,
+                report_content: reportText,
+                to_email: 'ktrou69@gmail.com'
             };
 
             console.log('📤 Отправляем отчет через EmailJS...');
@@ -1468,45 +1467,7 @@
 *** РЕЖИМ: СВОБОДА ОТ ЗАВИСИМОСТЕЙ ***`;
         }
 
-        function generateRetroHTML(data, reportText, hour) {
-            return `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Проект 69 - Напоминание</title>
-</head>
-<body style="margin: 0; padding: 15px; font-family: Arial, Helvetica, sans-serif; font-size: 14px; background: #2c3e50;">
-
-<div style="max-width: 600px; margin: 0 auto; background: #34495e; border: 3px outset #7f8c8d; box-shadow: 4px 4px 12px #1a252f;">
-
-<div style="text-align: center; margin-bottom: 20px; background: linear-gradient(to bottom, #3498db, #2980b9); border: 2px inset #5dade2; padding: 15px;">
-<div style="color: #ffffff; font-size: 20px; font-weight: bold; margin-bottom: 5px; text-shadow: 2px 2px 4px #000000;">💪 Проект 69 - Напоминание ${hour}:00</div>
-<div style="color: #ecf0f1; font-size: 12px; text-shadow: 1px 1px 2px #000000;">${data.date} в ${data.time} (Берлин)</div>
-</div>
-
-<div style="padding: 20px;">
-<div style="background: linear-gradient(to bottom, #e74c3c, #c0392b); border: 3px inset #ec7063; padding: 15px; margin-bottom: 15px;">
-<div style="color: #ffffff; font-size: 16px; font-weight: bold; margin-bottom: 10px; text-align: center; text-shadow: 2px 2px 4px #000000;">
-💪 НАПОМИНАНИЕ ПРОЕКТА 69
-</div>
-<pre style="font-size: 13px; line-height: 1.5; color: #ffffff; white-space: pre-wrap; font-family: 'Courier New', monospace; margin: 0; background: rgba(0,0,0,0.3); border: 2px inset #a93226; padding: 10px; text-shadow: 1px 1px 2px #000000;">${reportText}</pre>
-</div>
-
-<div style="background: linear-gradient(to bottom, #27ae60, #229954); border: 2px inset #58d68d; padding: 12px; text-align: center;">
-<div style="color: #ffffff; font-size: 14px; font-weight: bold; text-shadow: 2px 2px 4px #000000;">
-🎯 Каждый выбор приближает к цели!
-</div>
-<div style="color: #d5dbdb; font-size: 11px; margin-top: 3px; font-style: italic; text-shadow: 1px 1px 2px #000000;">
-Проект 69 - Путь к свободе от зависимостей
-</div>
-</div>
-
-</div>
-</div>
-
-</body>
-</html>`;
-        }
+        // Функция generateRetroHTML удалена - используем шаблон EmailJS
         function sendTestReport() {
             sendDailyReport(new Date().getHours());
         }
